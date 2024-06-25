@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>User Dashboard for {{ username }}</h1>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Statistics</h2>
+                <p>Average Kills: {{ avg_kills|round(2) }}</p>
+                <p>Average Deaths: {{ avg_deaths|round(2) }}</p>
+                <p>Average Assists: {{ avg_assists|round(2) }}</p>
+                <p>Win/Loss Ratio: {{ win_loss_ratio|round(2) }}</p>
+            </div>
+            <div class="col-md-4">
+                <h2>Top 3 Champions</h2>
+                <ul>
+                    {% for champ, count in top_champs %}
+                        <li>{{ champ }}: {{ count }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h2>Last 10 Matches</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Match ID</th>
+                            <th>Champion</th>
+                            <th>Kills</th>
+                            <th>Deaths</th>
+                            <th>Assists</th>
+                            <th>Win</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match_id, champion, kills, deaths, assists, win in last_entries %}
+                            <tr>
+                                <td>{{ match_id }}</td>
+                                <td>{{ champion }}</td>
+                                <td>{{ kills }}</td>
+                                <td>{{ deaths }}</td>
+                                <td>{{ assists }}</td>
+                                <td>{{ 'Win' if win else 'Lose' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <form id="updateForm" method="POST" action="{{ url_for('update_user_data', username=username) }}">
+            <button type="submit" class="btn btn-primary">Update Data</button>
+        </form>
+        <form id="newSearchForm" method="POST" action="{{ url_for('search_user') }}">
+            <input type="text" name="username" placeholder="Enter new username" required>
+            <button type="submit" class="btn btn-secondary">Search New User</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('updateForm').onsubmit = function(event) {
+            event.preventDefault();
+            fetch(this.action, {
+                method: this.method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert('Data updated successfully');
+                      window.location.reload();
+                  } else {
+                      alert('Failed to update data');
+                  }
+              });
+
