@@ -1,0 +1,1 @@
+Created program to learn SQL and mess with the league of legends API to track me and my friends match history and statistics. The program uses Flask to display the data and SQLite3 for the database. Python is used behind the scenes to send API requests to the league API. 
