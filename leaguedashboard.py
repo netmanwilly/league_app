@@ -2,11 +2,20 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, g
 import sqlite3
 import subprocess
 import os
+import json
 
 app = Flask(__name__)
 
 # Absolute path to the SQLite database
 DATABASE = 'REDACTED'
+
+
+def load_game_types(json_path):
+    with open(json_path, 'r') as file:
+        game_types = json.load(file)
+    return {entry['queueId']: entry['description'] for entry in game_types}
+
+
 
 def get_db():
     if 'db' not in g:
@@ -24,6 +33,9 @@ def close_connection(exception):
 def home():
     return render_template('home.html')
 
+
+game_types = load_game_types('/home/binu/league_app/game_types.json')
+
 @app.route('/user/<username>')
 def user_dashboard(username):
     conn = get_db()
@@ -33,47 +45,89 @@ def user_dashboard(username):
     cursor.execute("""
         SELECT AVG(kills) AS avg_kills, AVG(deaths) AS avg_deaths, AVG(assists) AS avg_assists
         FROM match_history
-        WHERE username=?
+        WHERE username=? AND queueId=420
     """, (username,))
     result = cursor.fetchone()
     avg_kills, avg_deaths, avg_assists = (result['avg_kills'], result['avg_deaths'], result['avg_assists']) if result else (0, 0, 0)
 
+    kda_ratio = (avg_kills + avg_assists) / avg_deaths if avg_deaths else 'Infinity'
+
     # Fetch win/loss counts
     cursor.execute("""
         SELECT COUNT(*) FROM match_history
-        WHERE username=? AND win=1
+        WHERE username=? AND win=1 AND queueId=420
     """, (username,))
     wins = cursor.fetchone()[0]
     cursor.execute("""
         SELECT COUNT(*) FROM match_history
-        WHERE username=? AND win=0
+        WHERE username=? AND win=0 AND queueId=420
     """, (username,))
     losses = cursor.fetchone()[0]
-    win_loss_ratio = wins / (wins + losses) if (wins + losses) > 0 else 0.0
 
     # Fetch top 3 champions
     cursor.execute("""
         SELECT champion, COUNT(*) AS champ_count
         FROM match_history
-        WHERE username=?
+        WHERE username=? AND queueId=420
         GROUP BY champion
         ORDER BY champ_count DESC
         LIMIT 3
     """, (username,))
     top_champs = cursor.fetchall()
 
-    # Fetch last 10 matches
+    # Fetch last 10 matches and calculate LP differences
     cursor.execute("""
-        SELECT match_id, champion, kills, deaths, assists, win
+        SELECT queueId, champion, kills, deaths, assists, win, lp_after_match
         FROM match_history
-        WHERE username=?
+        WHERE username=? AND queueId=420
         ORDER BY epoch_time DESC
         LIMIT 10
     """, (username,))
-    last_entries = cursor.fetchall()
+    matches = cursor.fetchall()
 
-    return render_template('user_dashboard.html', username=username, avg_kills=avg_kills, avg_deaths=avg_deaths, avg_assists=avg_assists,
-                           win_loss_ratio=win_loss_ratio, top_champs=top_champs, last_entries=last_entries)
+    last_lp = None
+    matches_with_diff = []
+    for match in matches:
+        queueId, champion, kills, deaths, assists, win, lp_after_match = match
+        lp_diff = None
+        if last_lp is not None:
+            lp_diff = lp_after_match - last_lp
+        formatted_lp_diff = f"{'+' if lp_diff is not None and lp_diff >= 0 else ''}{lp_diff}" if lp_diff is not None else "N/A"
+        matches_with_diff.append((queueId, formatted_lp_diff, champion, kills, deaths, assists, 'Win' if win else 'Loss'))
+        last_lp = lp_after_match
+
+    # Fetch ranked information
+    cursor.execute("""
+        SELECT tier AS tier, rank AS rank, leaguepoints AS lp
+        FROM ranked_info
+        WHERE username=?
+    """, (username,))
+    ranked_result = cursor.fetchone()
+
+    # Safely unpack the ranked result, or set defaults
+    if ranked_result:
+        tier = ranked_result['tier'].capitalize()
+        rank = ranked_result['rank']
+        lp = ranked_result['lp']
+    else:
+        tier, rank, lp = ('Unknown', 'N/A', 0)
+
+    cursor.close()
+    return render_template('user_dashboard.html',
+                            username=username,
+                            avg_kills=avg_kills,
+                            avg_deaths=avg_deaths,
+                            avg_assists=avg_assists,
+                            kda_ratio=kda_ratio,
+                            wins=wins,
+                            losses=losses,
+                            top_champs=top_champs,
+                            last_entries=matches_with_diff,
+                            tier=tier,
+                            rank=rank,
+                            lp=lp,
+                            game_types=game_types)
+
 
 @app.route('/search_user', methods=['POST'])
 def search_user():

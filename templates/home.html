@@ -3,23 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>League Stats Dashboard - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Optionally, you can add external stylesheets like Bootstrap for additional styling options -->
+    <style>
+        /* Internal styling for quick adjustments */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            text-align: center;
+        }
+        .search-form {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .search-form input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 300px;
+        }
+        .search-form button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .search-form button:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>League Stats Dashboard</h1>
-    
-    <!-- Search Form -->
-    <form action="{{ url_for('search_user') }}" method="POST">
-        <label for="username">Enter username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Search User</button>
-    </form>
+    <div class="container">
+        <h1>League Stats Dashboard</h1>
 
-    <!-- Error/Message Display -->
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
+        <!-- Search Form -->
+        <form action="{{ url_for('search_user') }}" method="POST" class="search-form">
+            <input type="text" id="username" name="username" placeholder="Enter username" required>
+            <button type="submit">Search User</button>
+        </form>
 
+        <!-- Error/Message Display -->
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+    </div>
 </body>
 </html>
 

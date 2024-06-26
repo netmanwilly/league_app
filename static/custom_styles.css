@@ -1,0 +1,143 @@
+
+.win {
+    background-color: #d4edda !important; /* Light green */
+}
+
+.loss {
+    background-color: #f8d7da !important; /* Light red */
+}
+
+
+.container,
+.container-fluid {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.row {
+    margin-right: -5px;
+    margin-left: -5px;
+}
+
+.col {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.m-1,
+.mr-1,
+.ml-1,
+.mt-1,
+.mb-1 {
+    margin: 5px !important;
+}
+
+.ranked-info {
+    text-align: center;
+    margin-bottom: 1em;
+    font-size: 20px;
+}
+
+.rank-image {
+    width: 80px; 
+    height: auto;
+    margin-bottom: 10px;
+}
+body {
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 95%;
+    margin: 0 auto;
+}
+.main-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+}
+.left-column {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 40%;
+    justify-content: space-between;
+}
+.left-column > div {
+    flex: 1 1 48%; 
+    margin-bottom: 20px; 
+}
+.right-column {
+    flex: 2;
+    max-width: calc(100% - 20px);
+}
+.btn-container {
+    text-align: center;
+    margin-top: 20px;
+}
+.card.mb-4 {
+    margin-bottom: 1.5rem;
+}
+.kda-box .card-text, .kda-box .card-title {
+    display: block;
+    text-align: center;
+    font-size: 2em;
+}
+.top-champs-box {
+    text-align: center;
+}
+.top-champs-box ul {
+    list-style-type: none;
+    padding: 0;
+}
+.top-champs-box ul li {
+    margin: 10px 0;
+}
+#winLossChartContainer {
+    position: relative;
+    text-align: center;
+}
+#winLossChart {
+    margin: 0 auto;
+}
+.win-loss-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2em;
+    font-weight: bold;
+}
+input-group .btn-light {
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+input-group .btn-light i {
+    font-size: 18px;
+}
+.input-group .form-inline.ml-2 {
+    margin-left: 10px;
+}
+.d-flex {
+display: flex;
+}
+.w-100 {
+    width: 100%;
+}
+    .form-control {
+    flex: 1;
+}
+.btn-light {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-secondary {
+    white-space: nowrap;
+}
+.mr-2 {
+    margin-right: 10px;
+}
+.ml-2 {
+    margin-left: 10px;
+}

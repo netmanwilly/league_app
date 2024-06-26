@@ -1,4 +1,4 @@
-/* styles.css */
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -15,10 +15,10 @@ table th {
 }
 
 tr.win {
-    background-color: #c8e6c9; /* Light green for wins */
+    background-color: #c8e6c9; 
 }
 
 tr.loss {
-    background-color: #ffcdd2; /* Light red for losses */
+    background-color: #ffcdd2; 
 }
 

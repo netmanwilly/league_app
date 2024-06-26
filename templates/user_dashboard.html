@@ -3,82 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>User Dashboard for {{ username }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom_styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>User Dashboard for {{ username }}</h1>
-        
-        <div class="row">
-            <div class="col-md-4">
-                <h2>Statistics</h2>
-                <p>Average Kills: {{ avg_kills|round(2) }}</p>
-                <p>Average Deaths: {{ avg_deaths|round(2) }}</p>
-                <p>Average Assists: {{ avg_assists|round(2) }}</p>
-                <p>Win/Loss Ratio: {{ win_loss_ratio|round(2) }}</p>
+    <div class="container my-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex w-100">
+                     <a href="{{ url_for('home') }}" class="btn btn-light mr-2">
+                        <i class="fas fa-home"></i>
+                     </a>
+                     <form id="search-form" action="{{ url_for('search_user') }}" method="post" class="d-flex w-100">
+                         <input type="text" name="username" class="form-control" placeholder="Enter new username" required>
+                         <button type="submit" class="btn btn-secondary ml-2">Search New User</button>
+                     </form>
+                </div>
             </div>
-            <div class="col-md-4">
-                <h2>Top 3 Champions</h2>
-                <ul>
-                    {% for champ, count in top_champs %}
-                        <li>{{ champ }}: {{ count }}</li>
-                    {% endfor %}
-                </ul>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h1 class="mb-4">User Dashboard for {{ username }}</h1>
             </div>
-            <div class="col-md-4">
+        </div>
+
+        <div class="main-container">
+            <div class="left-column">
+                <div class="card mb-4">
+                    <div class="card-body text-center kda-box">
+                        <h5 class="card-title">KDA</h5>
+                        <p class="card-text">{{ avg_kills|round(2) }}/{{ avg_deaths|round(2) }}/{{ avg_assists|round(2) }}</p>
+                        <p class="card-text">{{ kda_ratio|round(2) }}:1</p>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-body text-center top-champs-box">
+                        <h2>Top 3 Champions</h2>
+                        <ul class="list-group">
+                            {% for champ, count in top_champs %}
+                                <li class="list-group-item">{{ champ }}: {{ count }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card mb-4" id="winLossChartContainer">
+                    <div class="card-body">
+                        <canvas id="winLossChart"></canvas>
+                        <div class="win-loss-percentage" id="winLossPercentage"></div>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-body text-center kda-box">
+                        <h2>RANK</h2>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                            <img src="{{url_for('static', filename='images/' +  tier + '.png')}}" alt="{{  tier }}" class="rank-image"></img>
+                            </li>
+                            <li class="list-group-item ranked-info"><strong>{{  tier  }} {{ rank  }}</strong></li>
+                            <li class="list-group-item ranked-info"><strong>{{ lp }}</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="right-column">
                 <h2>Last 10 Matches</h2>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Match ID</th>
+                            <th>Queue Type</th>
+                            <th>LP Gain/Loss</th>
                             <th>Champion</th>
                             <th>Kills</th>
                             <th>Deaths</th>
                             <th>Assists</th>
-                            <th>Win</th>
+                            <th>Win/Loss</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for match_id, champion, kills, deaths, assists, win in last_entries %}
-                            <tr>
-                                <td>{{ match_id }}</td>
-                                <td>{{ champion }}</td>
-                                <td>{{ kills }}</td>
-                                <td>{{ deaths }}</td>
-                                <td>{{ assists }}</td>
-                                <td>{{ 'Win' if win else 'Lose' }}</td>
-                            </tr>
+                        {% for match in last_entries %}
+                        <tr class="{% if match[6] == 'Win' %}win{% else %}loss{% endif %}">
+                            <td>{{ game_types.get(match[0], 'Unknown') }}</td>
+                            <td>{{ match[1] }}</td>
+                            <td>{{ match[2] }}</td>
+                            <td>{{ match[3] }}</td>
+                            <td>{{ match[4] }}</td>
+                            <td>{{ match[5] }}</td>
+                            <td>{{ match[6] }}</td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                <div class="btn-container">
+                    <button id="update-data-btn" class="btn btn-primary">Update Data</button>
+                </div>
             </div>
         </div>
-
-        <form id="updateForm" method="POST" action="{{ url_for('update_user_data', username=username) }}">
-            <button type="submit" class="btn btn-primary">Update Data</button>
-        </form>
-        <form id="newSearchForm" method="POST" action="{{ url_for('search_user') }}">
-            <input type="text" name="username" placeholder="Enter new username" required>
-            <button type="submit" class="btn btn-secondary">Search New User</button>
-        </form>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        document.getElementById('updateForm').onsubmit = function(event) {
-            event.preventDefault();
-            fetch(this.action, {
-                method: this.method,
+        document.getElementById("update-data-btn").addEventListener("click", function() {
+            fetch("{{ url_for('update_user_data', username=username) }}", {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 }
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      alert('Data updated successfully');
-                      window.location.reload();
-                  } else {
-                      alert('Failed to update data');
-                  }
-              });
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Data updated successfully!");
+                    location.reload();
+                } else {
+                    alert("Failed to update data.");
+                }
+            })
+            .catch(error => console.error("Error updating data:", error));
+        });
+
+        // Chart.js configuration
+        var wins = {{ wins }};
+        var losses = {{ losses }};
+        var totalGames = wins + losses;
+        var winPercentage = ((wins / totalGames) * 100).toFixed(2);
+
+        var ctx = document.getElementById('winLossChart').getContext('2d');
+        var winLossChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Wins', 'Losses'],
+                datasets: [{
+                    data: [wins, losses],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                var label = tooltipItem.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += tooltipItem.raw + ' matches';
+                                return label;
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        document.getElementById('winLossPercentage').innerText = winPercentage + '%';
+    </script>
+</body>
+</html>
 
